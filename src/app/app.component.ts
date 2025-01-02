@@ -31,14 +31,6 @@ export class AppComponent implements OnInit, AfterViewInit {
   }));
   exampleItems = signal(this._exampleItems);
 
-  _id = 3;
-  addItem() {
-    this.exampleItems.update((items) => [
-      ...items,
-      { value: `value-${this._id}`, index: (this._id++).toString() },
-    ]);
-  }
-
   // swapy manual
   slotItemMap = signal(utils.initSlotItemMap(this.exampleItems(), 'index'));
   slottedItems = linkedSignal(() =>
@@ -52,7 +44,10 @@ export class AppComponent implements OnInit, AfterViewInit {
       items,
       'index',
       untracked(this.slotItemMap),
-      this.slotItemMap.set
+      (value) => {
+        console.log('Setting value: ', value);
+        this.slotItemMap.set(value)
+      }
     );
   });
 
@@ -61,11 +56,17 @@ export class AppComponent implements OnInit, AfterViewInit {
     if (container) {
       this.swapy = createSwapy(container, {
         animation: 'dynamic',
-        dragAxis: 'y',
+        // dragAxis: 'y',
         manualSwap: true,
+        swapMode: 'drop'
       });
 
       this.#swapyTestEvents();
+
+
+      // setInterval(() => {
+      //   console.log(this.slottedItems())
+      // }, 2000)
     }
   }
   ngAfterViewInit() {
@@ -75,18 +76,18 @@ export class AppComponent implements OnInit, AfterViewInit {
   #swapyTestEvents() {
     if (!this.swapy) return;
     this.swapy.onBeforeSwap((event) => {
-      console.log('before swap');
+      console.log('beforeSwap', event);
       // This is for dynamically enabling and disabling swapping.
       // Return true to allow swapping, and return false to prevent swapping.
       return true;
     });
 
     this.swapy.onSwapStart((event) => {
-      console.log('swap start');
+      console.log('start', event);
     });
 
     this.swapy.onSwap((event) => {
-      console.log('swap');
+      console.log('swap', event);
       requestAnimationFrame(() => {
         console.log('Old slotItemMap:', this.slotItemMap());
         console.log('New slotItemMap:', event.newSlotItemMap.asArray);
@@ -95,7 +96,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     });
 
     this.swapy.onSwapEnd((event) => {
-      console.log('swap end');
+      console.log('swap end:', event);
     });
   }
 }

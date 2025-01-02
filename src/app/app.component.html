@@ -19,7 +19,7 @@
   </div>
 </div> -->
 
-<button (click)="addItem()">ADD</button>
+<!-- <button (click)="addItem()">ADD</button> -->
 <div class="container" #swapyContainer>
   @for (v of slottedItems(); track v.item?.index) {
   <div class="slot top" [attr.data-swapy-slot]="v.slotId">
