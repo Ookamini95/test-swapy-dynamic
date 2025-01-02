@@ -1,3 +1,4 @@
+<!-- Static swapy -->
 <!-- <div class="container" #swapyContainer>
   <div class="slot top" data-swapy-slot="a">
     <div class="item item-a" data-swapy-item="a">
@@ -19,13 +20,25 @@
   </div>
 </div> -->
 
-<!-- <button (click)="addItem()">ADD</button> -->
+<!-- Dynamic swapy -->
+<button (click)="addItem()">ADD</button>
 <div class="container" #swapyContainer>
+  <!-- track v.item?.index | track v.itemId | track v.slotId | track $index -->
   @for (v of slottedItems(); track v.item?.index) {
   <div class="slot top" [attr.data-swapy-slot]="v.slotId">
     <div class="item item-a" [attr.data-swapy-item]="v.itemId">
-      <div>{{ v.item?.value ?? "undef" + $index }}</div>
+      <div>{{ v.item?.value ?? "undef" }}</div>
     </div>
   </div>
   }
+  <!-- Attempt with old api -->
+  <!--
+    <div *ngFor="let v of slottedItems()">
+      <div class="slot top" [attr.data-swapy-slot]="v.slotId">
+        <div class="item item-a" [attr.data-swapy-item]="v.itemId">
+          <div>{{ v.item?.value ?? "undef" }}</div>
+        </div>
+      </div>
+    </div>
+  -->
 </div>

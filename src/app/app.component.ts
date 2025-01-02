@@ -1,3 +1,4 @@
+import { NgFor } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -10,11 +11,11 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
-import { createSwapy, utils } from 'swapy';
+import { createSwapy, Swapy, utils } from 'swapy';
 
 @Component({
   selector: 'app-root',
-  imports: [],
+  imports: [NgFor],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })
@@ -23,7 +24,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   _swapyContainer = viewChild<ElementRef<HTMLDivElement>>('swapyContainer');
   swapyContainer = computed(() => this._swapyContainer()?.nativeElement);
 
-  swapy?: ReturnType<typeof createSwapy>;
+  swapy?: Swapy;
 
   _exampleItems = Array.from({ length: 3 }, (_, i) => ({
     value: `value-${i}`,
@@ -31,10 +32,17 @@ export class AppComponent implements OnInit, AfterViewInit {
   }));
   exampleItems = signal(this._exampleItems);
 
+  addItem() {
+    const idx = this.exampleItems().length;
+    this.exampleItems.update((items) => [...items, { value: `value-${idx}`, index: idx.toString() }]);
+  }
+
   // swapy manual
   slotItemMap = signal(utils.initSlotItemMap(this.exampleItems(), 'index'));
-  slottedItems = linkedSignal(() =>
-    utils.toSlottedItems(this.exampleItems(), 'index', this.slotItemMap())
+  slottedItems = linkedSignal(() => {
+    console.log('Linked items: ', utils.toSlottedItems(this.exampleItems(), 'index', this.slotItemMap()));
+    return utils.toSlottedItems(this.exampleItems(), 'index', this.slotItemMap())
+  }
   );
   slotItemsEffect = effect(() => {
     const items = this.exampleItems();
@@ -44,10 +52,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       items,
       'index',
       untracked(this.slotItemMap),
-      (value) => {
-        console.log('Setting value: ', value);
-        this.slotItemMap.set(value)
-      }
+      this.slotItemMap.set
     );
   });
 
@@ -56,17 +61,11 @@ export class AppComponent implements OnInit, AfterViewInit {
     if (container) {
       this.swapy = createSwapy(container, {
         animation: 'dynamic',
-        // dragAxis: 'y',
+        dragAxis: 'y',
         manualSwap: true,
-        swapMode: 'drop'
+        // swapMode: 'drop'
       });
-
       this.#swapyTestEvents();
-
-
-      // setInterval(() => {
-      //   console.log(this.slottedItems())
-      // }, 2000)
     }
   }
   ngAfterViewInit() {
@@ -76,21 +75,19 @@ export class AppComponent implements OnInit, AfterViewInit {
   #swapyTestEvents() {
     if (!this.swapy) return;
     this.swapy.onBeforeSwap((event) => {
-      console.log('beforeSwap', event);
+      console.log('before swap', event);
       // This is for dynamically enabling and disabling swapping.
       // Return true to allow swapping, and return false to prevent swapping.
       return true;
     });
 
     this.swapy.onSwapStart((event) => {
-      console.log('start', event);
+      console.log('swap start', event);
     });
 
     this.swapy.onSwap((event) => {
       console.log('swap', event);
       requestAnimationFrame(() => {
-        console.log('Old slotItemMap:', this.slotItemMap());
-        console.log('New slotItemMap:', event.newSlotItemMap.asArray);
         this.slotItemMap.set(event.newSlotItemMap.asArray);
       });
     });
